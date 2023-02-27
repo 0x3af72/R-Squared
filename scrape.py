@@ -53,12 +53,14 @@ def get_posts(
 
     # wait until enough posts are loaded
     start_time = time.time()
-    while len(driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")) < max_posts:
+    post_elems = driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
+    while len(post_elems) < max_posts:
+        post_elems = driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
         if time.time() - start_time >= WAIT_TIMEOUT: break
 
     # find post: titles and links
     posts = []
-    for element in driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']"):
+    for element in post_elems:
 
         # exit if limit reached
         if len(posts) == max_posts: break
@@ -93,14 +95,24 @@ def get_posts(
         # change webpage
         driver.get(post["link"])
 
-        # wait until enough posts are loaded
+        # wait until enough comments are loaded
         start_time = time.time()
-        while len(driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']")) < max_videos * max_comments:
+        comment_elems = [
+            element for element in
+            driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']")
+            if "level 1" in element.text # only get main posts
+        ]
+        while len(comment_elems) < max_videos * max_comments:
+            comment_elems = [
+                element for element in
+                driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']")
+                if "level 1" in element.text # only get main posts
+            ]
             if time.time() - start_time >= WAIT_TIMEOUT: break
 
         # screenshot and store each comment
         cur_comments = []
-        for element in driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']"):
+        for element in comment_elems:
 
             # exit if limit reached
             if len(post["comments"]) == max_videos: break

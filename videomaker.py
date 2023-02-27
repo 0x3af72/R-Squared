@@ -35,7 +35,8 @@ def generate_reddit_videos(
 
     # create a video for each post
     for post in posts:
-
+        
+        unused_comments = [] # if comments not used, can use for next video
         for vid_idx in range(len(post["comments"])): # might be slow
 
             # get title clip and audio
@@ -49,16 +50,24 @@ def generate_reddit_videos(
             # get comment videos to add to compositeclip and total duration
             print(f"[DEBUG][{vid_idx}]: Creating comment video clips for post: {post['title']}")
             total_duration = duration
-            for text, comment_path in post["comments"][vid_idx]:
-                # create clips
-                duration = librosa.get_duration(filename=comment_path + ".wav")
-                image = ImageClip(comment_path + ".png").set_start(total_duration).set_position("center").set_duration(duration)
-                image = resize(image, width=output_width, height=int(output_width / image.w * image.h))
-                audio = AudioFileClip(comment_path + ".wav").set_start(total_duration)
+            new_unused = []
+            for text, comment_path in sorted(
+                post["comments"][vid_idx] + unused_comments,
+                key=lambda comment: len(comment[0]), reverse=True # sort comments by size descending
+            ):
+                if total_duration < 60:
+                    # create clips
+                    duration = librosa.get_duration(filename=comment_path + ".wav")
+                    image = ImageClip(comment_path + ".png").set_start(total_duration).set_position("center").set_duration(duration)
+                    image = resize(image, width=output_width, height=int(output_width / image.w * image.h))
+                    audio = AudioFileClip(comment_path + ".wav").set_start(total_duration)
 
-                # update list and total duration
-                comment_clips.append(image); comment_audios.append(audio)
-                total_duration += duration
+                    # update list and total duration
+                    comment_clips.append(image); comment_audios.append(audio)
+                    total_duration += duration
+
+                else: # just add the comment to unused
+                    new_unused.append((text, comment_path))
 
             # background video
             print(f"[DEBUG][{vid_idx}]: Adding background video")
