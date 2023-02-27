@@ -55,9 +55,11 @@ def generate_reddit_videos(
                 post["comments"][vid_idx] + unused_comments,
                 key=lambda comment: len(comment[0]), reverse=True # sort comments by size descending
             ):
-                if total_duration < 60:
+                
+                # check if exceeds
+                duration = librosa.get_duration(filename=comment_path + ".wav")
+                if total_duration + duration < 59:
                     # create clips
-                    duration = librosa.get_duration(filename=comment_path + ".wav")
                     image = ImageClip(comment_path + ".png").set_start(total_duration).set_position("center").set_duration(duration)
                     image = resize(image, width=output_width, height=int(output_width / image.w * image.h))
                     audio = AudioFileClip(comment_path + ".wav").set_start(total_duration)
@@ -67,7 +69,8 @@ def generate_reddit_videos(
                     total_duration += duration
 
                 else: # just add the comment to unused
-                    new_unused.append((text, comment_path))
+                    if duration < 59: # if comment is super long just skip
+                        new_unused.append((text, comment_path))
 
             # background video
             print(f"[DEBUG][{vid_idx}]: Adding background video")
@@ -77,7 +80,7 @@ def generate_reddit_videos(
             # final clip creation
             print(f"[DEBUG][{vid_idx}]: Generating final clip")
             final_audio = CompositeAudioClip(comment_audios)
-            final_clip = CompositeVideoClip([background_video, *comment_clips]).set_audio(final_audio).subclip(0, 58)
+            final_clip = CompositeVideoClip([background_video, *comment_clips]).set_audio(final_audio)
 
             # crop final clip
             x1 = (final_clip.w - output_width) // 2; x2 = x1 + output_width
@@ -94,4 +97,4 @@ def generate_reddit_videos(
 
 if __name__ == "__main__":
     # need to put more comments or else will have black screen if comments are too short
-    generate_reddit_videos(max_posts=2, max_comments=10, max_videos=3)
+    generate_reddit_videos(max_posts=5, max_comments=10, max_videos=3)
