@@ -12,12 +12,12 @@ def filter_filename(name, illegal="\\/:?\"<>|"):
 
 def generate_reddit_videos(
     subreddit="AskReddit", max_posts=5, max_comments=7, max_videos=1, bg_path="background/minecraft.mp4",
-    output_width=786, output_height=1400, clear_folder=True, **kwargs
+    output_width=786, output_height=1400, clear_folder=True, **kwargs,
 ):
     # just in case, create screenshots and output folder
-    try:
-        os.mkdir("screenshots")
-        os.mkdir("output")
+    try: os.mkdir("screenshots")
+    except FileExistsError: pass
+    try: os.mkdir("output")
     except FileExistsError: pass
     
     # clear folder
@@ -92,9 +92,9 @@ def generate_reddit_videos(
                 "output/" + f"({vid_idx + 1}) " + filter_filename(post["title"]) + ".mp4",
                 temp_audiofile="output/temp-audio.mp3",
                 verbose=False, logger=None, fps=30, codec="libx264",
-                ffmpeg_params=["-vf", "format=yuv420p"]
+                ffmpeg_params=["-vf", "format=yuv420p"],
+                threads=4,
             )
 
 if __name__ == "__main__":
-    # need to put more comments or else will have black screen if comments are too short
-    generate_reddit_videos(max_posts=5, max_comments=10, max_videos=3)
+    generate_reddit_videos(max_posts=2, max_comments=10, max_videos=3)

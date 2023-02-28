@@ -25,13 +25,19 @@ def save_tts(text, file):
     converter.save_to_file(text, file)
     converter.runAndWait()
 
+# whether to ignore a post
+def to_ignore(element, ignore):
+    for text in ignore:
+        if text in element.text: return True
+    return False
+
 # get posts from subreddit
 def get_posts(
     subreddit,
     max_posts=5, # number of posts to scrape
     max_comments=7, # number of comments per video
     max_videos=1, # number of videos to create from one post
-    WAIT_TIMEOUT=20 # number of seconds to wait for enough posts and comments to load
+    WAIT_TIMEOUT=20, ignore=[],
 ):
     
     # just in case, create screenshots folder
@@ -45,7 +51,6 @@ def get_posts(
     prefs = {"profile.default_content_setting_values.notifications": 2} # this disables the screen dimming thing
     options.add_experimental_option("prefs", prefs)
     options.add_argument("--log-level=3")
-    # options.add_argument("--headless")
     options.add_argument("--disable-logging")
     driver = webdriver.Chrome(options=options)
     driver.get(f"https://www.reddit.com/r/{subreddit}/top/?t=day")
@@ -53,9 +58,13 @@ def get_posts(
 
     # wait until enough posts are loaded
     start_time = time.time()
-    post_elems = driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
+    post_elems = []
     while len(post_elems) < max_posts:
-        post_elems = driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
+        post_elems = [
+            element for element in
+            driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
+            if not to_ignore(element, ignore)
+        ]
         if time.time() - start_time >= WAIT_TIMEOUT: break
 
     # find post: titles and links
@@ -97,11 +106,7 @@ def get_posts(
 
         # wait until enough comments are loaded
         start_time = time.time()
-        comment_elems = [
-            element for element in
-            driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']")
-            if "level 1" in element.text # only get main posts
-        ]
+        comment_elems = []
         while len(comment_elems) < max_videos * max_comments:
             comment_elems = [
                 element for element in
