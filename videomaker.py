@@ -3,17 +3,24 @@ from moviepy.video.fx.all import crop, resize
 from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, AudioFileClip, CompositeAudioClip
 
 import os
-import scrape
 import random
+
+import scrape
+import printswitch
+from printswitch import PRINTS
 
 # filter out illegal filename characters
 def filter_filename(name, illegal="\\/:?\"<>|"):
     return "".join(c for c in name if not c in illegal)
 
 def generate_reddit_videos(
-    subreddit="AskReddit", max_posts=5, max_comments=7, max_videos=1, bg_path="background/minecraft.mp4",
-    output_width=786, output_height=1400, clear_folder=True, **kwargs,
+    subreddit, bg_path, max_posts=5, max_comments=7, max_videos=1,
+    output_width=786, output_height=1400, clear_folder=True, logging=True, **kwargs,
 ):
+    
+    # set logging switch
+    printswitch.switch.print = logging
+
     # just in case, create screenshots and output folder
     try: os.mkdir("screenshots")
     except FileExistsError: pass
@@ -30,8 +37,8 @@ def generate_reddit_videos(
     output_width += 1 * (output_width % 2 != 0)
 
     # call scrape
-    print(f"[DEBUG] Scraping subreddit: {subreddit} for up to {max_posts} posts, up to {max_comments} comments, up to {max_videos} videos")
-    posts = scrape.get_posts(subreddit, max_posts, max_comments, max_videos, **kwargs)
+    PRINTS(f"[DEBUG] Scraping subreddit: {subreddit} for up to {max_posts} posts, up to {max_comments} comments, up to {max_videos} videos")
+    posts = scrape.get_posts(subreddit, max_posts, max_comments, max_videos, logging=logging, **kwargs)
 
     # create a video for each post
     for post in posts:
@@ -48,7 +55,7 @@ def generate_reddit_videos(
             comment_audios = [audio,]
 
             # get comment videos to add to compositeclip and total duration
-            print(f"[DEBUG][{vid_idx}]: Creating comment video clips for post: {post['title']}")
+            PRINTS(f"[DEBUG][{vid_idx}]: Creating comment video clips for post: {post['title']}")
             total_duration = duration
             new_unused = []
             for text, comment_path in sorted(
@@ -73,12 +80,22 @@ def generate_reddit_videos(
                         new_unused.append((text, comment_path))
 
             # background video
-            print(f"[DEBUG][{vid_idx}]: Adding background video")
-            start_time = random.randint(0, 4200) # start time: 0s - 1h10min
-            background_video = VideoFileClip(bg_path).subclip(start_time, start_time + total_duration).set_audio(None).resize(2)
+            PRINTS(f"[DEBUG][{vid_idx}]: Adding background video")
+            background_video = VideoFileClip(bg_path).set_audio(None)
+
+            # resize background video to fit
+            resize_scale = max(output_width / background_video.w, output_height / background_video.h)
+            if resize_scale > 1:
+                background_video = background_video.resize(resize_scale)
+                PRINTS(f"[DEBUG][{vid_idx}]: Resizing to scale: {resize_scale}")
+
+            # set background video subclip, background video needs to be longer than 60s to work, else bad things will happen
+            start_time = random.randint(0, int(background_video.duration) - 60)
+            background_video = background_video.subclip(start_time, start_time + total_duration)
+            PRINTS(f"[DEBUG][{vid_idx}]: Background video subclip start: {start_time}s")
 
             # final clip creation
-            print(f"[DEBUG][{vid_idx}]: Generating final clip")
+            PRINTS(f"[DEBUG][{vid_idx}]: Generating final clip")
             final_audio = CompositeAudioClip(comment_audios)
             final_clip = CompositeVideoClip([background_video, *comment_clips]).set_audio(final_audio)
 
@@ -97,4 +114,8 @@ def generate_reddit_videos(
             )
 
 if __name__ == "__main__":
-    generate_reddit_videos(max_posts=2, max_comments=10, max_videos=3)
+    generate_reddit_videos(
+        subreddit="AskReddit",
+        max_posts=1, max_comments=5, max_videos=2, bg_path="background/minecraft.mp4",
+        logging=False
+    )

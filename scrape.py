@@ -8,6 +8,9 @@ import random
 import string
 import time
 
+import printswitch
+from printswitch import PRINTS
+
 # constants
 EXECUTABLE_PATH = "chromedriver.exe"
 BRAVE_PATH = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
@@ -37,8 +40,11 @@ def get_posts(
     max_posts=5, # number of posts to scrape
     max_comments=7, # number of comments per video
     max_videos=1, # number of videos to create from one post
-    WAIT_TIMEOUT=20, ignore=[],
+    WAIT_TIMEOUT=20, ignore=[], logging=False,
 ):
+    
+    # set logging switch
+    printswitch.switch.print = logging
     
     # just in case, create screenshots folder
     try: os.mkdir("screenshots")
@@ -99,7 +105,7 @@ def get_posts(
     for idx, post in enumerate(posts):
 
         # debug message
-        print(f"[DEBUG] Scraping post: {post['title']} ({idx + 1} / {len(posts)})")
+        PRINTS(f"[DEBUG] Scraping post: {post['title']} ({idx + 1} / {len(posts)})")
 
         # change webpage
         driver.get(post["link"])
@@ -153,7 +159,7 @@ def get_posts(
 if __name__ == "__main__":
     posts = get_posts("AskReddit", max_posts=2, max_videos=5)
     for post in posts:
-        print(post["title"], len(post["comments"]))
+        PRINTS(post["title"], len(post["comments"]))
         for comment in post["comments"]:
-            print(len(comment))
-            print("> " + comment[0][0])
+            PRINTS(len(comment))
+            PRINTS("> " + comment[0][0])
