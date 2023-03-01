@@ -105,14 +105,16 @@ def generate_reddit_videos(
             final_clip = crop(final_clip, x1=x1, y1=y1, x2=x2, y2=y2)
 
             # write output
-            final_clip.write_videofile(
-                "output/" + f"({vid_idx + 1}) " + filter_filename(post["title"]) + ".mp4",
-                temp_audiofile="output/temp-audio.mp3",
-                verbose=False, logger=None, fps=30, codec="libx264",
-                ffmpeg_params=["-vf", "format=yuv420p"],
-                threads=4,
-            )
-            print(f"[DEBUG][{vid_idx}]: DONE!")
+            try:
+                final_clip.write_videofile(
+                    "output/" + f"({vid_idx + 1}) " + filter_filename(post["title"]) + ".mp4",
+                    temp_audiofile="output/temp-audio.mp3",
+                    verbose=False, logger=None, fps=30, codec="libx264",
+                    ffmpeg_params=["-vf", "format=yuv420p"],
+                    threads=4,
+                )
+                print(f"[DEBUG][{vid_idx}]: DONE!")
+            except OSError: pass # winerror 6 thrown for no reason sometimes
 
 if __name__ == "__main__":
     generate_reddit_videos(
