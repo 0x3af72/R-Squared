@@ -40,7 +40,7 @@ def get_posts(
     max_posts=5, # number of posts to scrape
     max_comments=7, # number of comments per video
     max_videos=1, # number of videos to create from one post
-    WAIT_TIMEOUT=20, ignore=[], logging=False,
+    WAIT_TIMEOUT=20, ignore=[], logging=True,
 ):
     
     # set logging switch

@@ -15,7 +15,7 @@ def filter_filename(name, illegal="\\/:?\"<>|"):
 
 def generate_reddit_videos(
     subreddit, bg_path, max_posts=5, max_comments=7, max_videos=1,
-    output_width=786, output_height=1400, clear_folder=True, logging=True, **kwargs,
+    output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
     
     # set logging switch
@@ -28,7 +28,7 @@ def generate_reddit_videos(
     except FileExistsError: pass
     
     # clear folder
-    if clear_folder:
+    if clear_screenshot_folder:
         for file in os.listdir("screenshots"):
             try: os.remove("screenshots/" + file)
             except PermissionError: pass
@@ -112,10 +112,11 @@ def generate_reddit_videos(
                 ffmpeg_params=["-vf", "format=yuv420p"],
                 threads=4,
             )
+            print(f"[DEBUG][{vid_idx}]: DONE!")
 
 if __name__ == "__main__":
     generate_reddit_videos(
         subreddit="AskReddit",
-        max_posts=1, max_comments=5, max_videos=2, bg_path="background/minecraft.mp4",
-        logging=False
+        max_posts=5, max_comments=10, max_videos=3, bg_path="background/cake.mp4",
+        logging=True
     )
