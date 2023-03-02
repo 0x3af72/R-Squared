@@ -118,7 +118,7 @@ def generate_reddit_videos_PTC(
             except OSError: pass # winerror 6 thrown for no reason sometimes
 
 # post and description video generator
-def generate_reddit_videos_PTC(
+def generate_reddit_videos_PD(
     subreddit, bg_path, max_posts=5,
     output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
