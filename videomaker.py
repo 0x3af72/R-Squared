@@ -13,7 +13,8 @@ from printswitch import PRINTS
 def filter_filename(name, illegal="\\/:?\"<>|"):
     return "".join(c for c in name if not c in illegal)
 
-def generate_reddit_videos(
+# post and comments video generator
+def generate_reddit_videos_PTC(
     subreddit, bg_path, max_posts=5, max_comments=7, max_videos=1,
     output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
@@ -116,8 +117,15 @@ def generate_reddit_videos(
                 print(f"[DEBUG][{vid_idx}]: DONE!")
             except OSError: pass # winerror 6 thrown for no reason sometimes
 
+# post and description video generator
+def generate_reddit_videos_PTC(
+    subreddit, bg_path, max_posts=5,
+    output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
+):
+    pass
+
 if __name__ == "__main__":
-    generate_reddit_videos(
+    generate_reddit_videos_PTC(
         subreddit="AskReddit",
         max_posts=5, max_comments=10, max_videos=3, bg_path="background/cake.mp4",
         logging=True

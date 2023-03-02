@@ -14,8 +14,9 @@ from printswitch import PRINTS
 # constants
 EXECUTABLE_PATH = "chromedriver.exe"
 BRAVE_PATH = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
-QUESTION_ELEMENT_CLASS = "Post "
-QUESTION_TEXT_CLASS = "SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"
+POST_ELEMENT_CLASS = "Post "
+POST_TEXT_CLASS = "SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"
+POST_DESCRIPTION_CLASS = "_3xX726aBn29LDbsDtzr_6E _1Ap4F5maDtT1E1YuCiaO0r D3IL3FD0RFy_mkKLPwL4"
 COMMENT_ELEMENT_CLASS = "Comment "
 COMMENT_TEXT_CLASS = "_292iotee39Lmt0MkQZ2hPV RichTextJSON-root"
 
@@ -34,8 +35,8 @@ def to_ignore(element, ignore):
         if text in element.text: return True
     return False
 
-# get posts from subreddit
-def get_posts(
+# get posts and comments
+def get_posts_PTC(
     subreddit,
     max_posts=5, # number of posts to scrape
     max_comments=7, # number of comments per video
@@ -68,7 +69,7 @@ def get_posts(
     while len(post_elems) < max_posts:
         post_elems = [
             element for element in
-            driver.find_elements(By.CSS_SELECTOR, f"[class*='{QUESTION_ELEMENT_CLASS}']")
+            driver.find_elements(By.CSS_SELECTOR, f"[class*='{POST_ELEMENT_CLASS}']")
             if not to_ignore(element, ignore)
         ]
         if time.time() - start_time >= WAIT_TIMEOUT: break
@@ -82,7 +83,7 @@ def get_posts(
 
         # ads and anomaly skipper
         try:
-            text_element = element.find_element(By.XPATH, f".//a[@class='{QUESTION_TEXT_CLASS}']")
+            text_element = element.find_element(By.XPATH, f".//a[@class='{POST_TEXT_CLASS}']")
         except selenium.common.exceptions.WebDriverException: # this should skip ads
             continue
 
@@ -156,10 +157,109 @@ def get_posts(
 
     return posts
 
+# get posts and description from subreddit
+def get_posts_PD(
+    subreddit,
+    max_posts=5, # number of posts to scrape
+    CHUNKSIZE=50, # chunk up long descriptions by chunks of n words
+    WAIT_TIMEOUT=20, ignore=[], logging=True,
+):
+    
+    # set logging switch
+    printswitch.switch.print = logging
+    
+    # just in case, create screenshots folder
+    try: os.mkdir("screenshots")
+    except FileExistsError: pass
+
+    # setup driver
+    options = webdriver.ChromeOptions()
+    options.binary_location = BRAVE_PATH
+    options.executable_path = EXECUTABLE_PATH
+    prefs = {"profile.default_content_setting_values.notifications": 2} # this disables the screen dimming thing
+    options.add_experimental_option("prefs", prefs)
+    options.add_argument("--log-level=3")
+    options.add_argument("--disable-logging")
+    driver = webdriver.Chrome(options=options)
+    driver.get(f"https://www.reddit.com/r/{subreddit}/top/?t=day")
+    driver.maximize_window()
+
+    # wait until enough posts are loaded
+    start_time = time.time()
+    post_elems = []
+    while len(post_elems) < max_posts:
+        post_elems = [
+            element for element in
+            driver.find_elements(By.CSS_SELECTOR, f"[class*='{POST_ELEMENT_CLASS}']")
+            if not to_ignore(element, ignore)
+        ]
+        if time.time() - start_time >= WAIT_TIMEOUT: break
+
+    # find post: titles and descriptions
+    posts_to_visit = []
+    for element in post_elems:
+
+        # exit if limit reached
+        if len(posts_to_visit) == max_posts: break
+
+        # ads and anomaly skipper
+        try:
+            text_element = element.find_element(By.XPATH, f".//a[@class='{POST_TEXT_CLASS}']")
+        except selenium.common.exceptions.WebDriverException: # this should skip ads
+            continue
+
+        # save screenshot and tts
+        path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
+        driver.execute_script('arguments[0].scrollIntoView({block: "center"});', element) # prevent cutting off
+        element.screenshot(path + ".png")
+        save_tts(text_element.text, path + ".wav")
+
+        posts_to_visit.append((text_element.text, text_element.get_attribute("href")))
+
+    posts = []
+    for title, link in posts_to_visit:
+
+        # visit link
+        driver.get(link)
+
+        # get chunk text
+        PRINTS(f"[DEBUG]: Getting post description: {title}")
+        try:
+            description_text = driver.find_element(By.XPATH, f"//div[@class='{POST_DESCRIPTION_CLASS}']").text.split(" ")
+            if not description_text:
+                PRINTS(f"[DEBUG]: POST NO DESCRIPTION, ABORTING.")
+                return False # invalid post, subreddit might not work at all
+        except selenium.common.exceptions.NoSuchElementException:
+            PRINTS(f"[DEBUG]: POST NO DESCRIPTION, ABORTING.")
+            return False # same as above
+        
+        description_chunks = []
+        # chunking up + tts
+        while description_text:
+            chunk = " ".join(description_text[:CHUNKSIZE])
+            path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
+            save_tts(chunk, path + ".wav")
+            description_chunks.append((chunk, path))
+            description_text = description_text[CHUNKSIZE:]
+
+        # add the new element to posts
+        new_element = {
+            "title": title[:92],
+            "description_chunks": description_chunks,
+            "thumbnail": path,
+        }
+        posts.append(new_element)
+
+    return posts
+
 if __name__ == "__main__":
-    posts = get_posts("AskReddit", max_posts=2, max_videos=5)
+    # posts = get_posts_PTC("AskReddit", max_posts=2, max_videos=5)
+    # for post in posts:
+    #     PRINTS(post["title"], len(post["comments"]))
+    #     for comment in post["comments"]:
+    #         PRINTS(len(comment))
+    #         PRINTS("> " + comment[0][0])
+    posts = get_posts_PD("AmItheAsshole", max_posts=2)
     for post in posts:
-        PRINTS(post["title"], len(post["comments"]))
-        for comment in post["comments"]:
-            PRINTS(len(comment))
-            PRINTS("> " + comment[0][0])
+        print(post["title"])
+        print(post["description_chunks"])
