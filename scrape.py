@@ -7,6 +7,7 @@ import os
 import random
 import string
 import time
+from copy import copy
 
 import printswitch
 from printswitch import PRINTS
@@ -25,7 +26,7 @@ converter = pyttsx3.init()
 converter.setProperty("rate", 225)
 
 # save tts to a file
-def save_tts(text, file):
+def save_tts(text, file, pause=True):
     converter.save_to_file(text, file)
     converter.runAndWait()
 
@@ -214,10 +215,10 @@ def get_posts_PD(
         element.screenshot(path + ".png")
         save_tts(text_element.text, path + ".wav")
 
-        posts_to_visit.append((text_element.text, text_element.get_attribute("href")))
+        posts_to_visit.append((text_element.text, text_element.get_attribute("href"), path))
 
     posts = []
-    for title, link in posts_to_visit:
+    for title, link, thumbnail in posts_to_visit:
 
         # visit link
         driver.get(link)
@@ -225,20 +226,21 @@ def get_posts_PD(
         # get chunk text
         PRINTS(f"[DEBUG]: Getting post description: {title}")
         try:
-            description_text = driver.find_element(By.XPATH, f"//div[@class='{POST_DESCRIPTION_CLASS}']").text.split(" ")
+            description_text = driver.find_element(By.XPATH, f"//div[@class='{POST_DESCRIPTION_CLASS}']").text
             if not description_text:
                 PRINTS(f"[DEBUG]: POST NO DESCRIPTION, ABORTING.")
                 return False # invalid post, subreddit might not work at all
+            description_text = description_text.split(" ")
         except selenium.common.exceptions.NoSuchElementException:
             PRINTS(f"[DEBUG]: POST NO DESCRIPTION, ABORTING.")
             return False # same as above
         
-        description_chunks = []
         # chunking up + tts
+        description_chunks = []
         while description_text:
             chunk = " ".join(description_text[:CHUNKSIZE])
             path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
-            save_tts(chunk, path + ".wav")
+            save_tts(chunk, path + ".wav", False)
             description_chunks.append((chunk, path))
             description_text = description_text[CHUNKSIZE:]
 
@@ -246,7 +248,7 @@ def get_posts_PD(
         new_element = {
             "title": title[:92],
             "description_chunks": description_chunks,
-            "thumbnail": path,
+            "thumbnail": thumbnail,
         }
         posts.append(new_element)
 
