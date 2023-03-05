@@ -171,7 +171,7 @@ def generate_reddit_videos_PD(
             # create textclip and get audio
             duration = librosa.get_duration(filename=chunk_path + ".wav")
             audio = AudioFileClip(chunk_path + ".wav").set_start(total_duration)
-            text = TextClip(chunk, fontsize=10, color="black").set_start(total_duration).set_pos("center").set_duration(duration)
+            text = TextClip(chunk, fontsize=10, color="black").set_start(total_duration).set_pos("center").set_duration(duration - 0.5)
 
             # update list and total duration
             post_clips.append(text); post_audios.append(audio)
