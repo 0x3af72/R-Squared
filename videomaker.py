@@ -175,7 +175,7 @@ def generate_reddit_videos_PD(
 
             # update list and total duration
             post_clips.append(text); post_audios.append(audio)
-            total_duration += duration
+            total_duration += duration - 0.5 # offset pause at audio end
 
         # background video
         PRINTS(f"[DEBUG]: Adding background video")
