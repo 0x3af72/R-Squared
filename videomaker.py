@@ -1,13 +1,17 @@
 import librosa
 from moviepy.video.fx.all import crop, resize
-from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, AudioFileClip, CompositeAudioClip, TextClip
+from moviepy.editor import VideoFileClip, ImageClip, CompositeVideoClip, AudioFileClip, CompositeAudioClip, TextClip, ColorClip
 
 import os
 import random
+import string
 
 import scrape
 import printswitch
 from printswitch import PRINTS
+
+# legal characters
+LEGAL_CHARS = string.ascii_letters + string.digits + string.punctuation + string.whitespace
 
 # filter out illegal filename characters
 def filter_filename(name, illegal="\\/:?\"<>|"):
@@ -121,7 +125,7 @@ def generate_reddit_videos_PTC(
 
 # post and description video generator
 def generate_reddit_videos_PD(
-    subreddit, bg_path, max_posts=5,
+    subreddit, bg_path, max_posts=5, FONTSIZE=20,
     output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
     
@@ -142,6 +146,13 @@ def generate_reddit_videos_PD(
     
     # width needs to be divisible by 2
     output_width += 1 * (output_width % 2 != 0)
+
+    # prepare for textclip by getting width of all characters
+    char_dimensions = {}
+    for c in LEGAL_CHARS:
+        text_clip = TextClip(c, fontsize=FONTSIZE, font="Verdana")
+        char_dimensions[c] = (text_clip.w, text_clip.h)
+    print(char_dimensions)
 
     # call scrape
     PRINTS(f"[DEBUG][PD MODE]: Scraping subreddit: {subreddit} for up to {max_posts} posts")
@@ -168,13 +179,35 @@ def generate_reddit_videos_PD(
             # stop when length exceeds already, this might cut off some part of the final video
             if total_duration > 59: break
 
-            # create textclip and get audio
+            # audio and duration
             duration = librosa.get_duration(filename=chunk_path + ".wav")
             audio = AudioFileClip(chunk_path + ".wav").set_start(total_duration)
-            text = TextClip(chunk, fontsize=10, color="black").set_start(total_duration).set_pos("center").set_duration(duration - 0.5)
+
+            # filter chunk
+            chunk = chunk.replace("\n", " ")
+            chunk = "".join(c for c in chunk if c in LEGAL_CHARS).split(" ")
+
+            # split chunk into smaller chunks not exceeding screen width
+            word_idx = 0
+            cur_width = 0
+            subchunk = ""
+            final_chunk = ""
+            while word_idx != len(chunk):
+                subchunk += chunk[word_idx] + " "
+                for c in chunk[word_idx] + " ": cur_width += char_dimensions[c][0]
+                word_idx += 1
+                if cur_width >= output_width * 0.95 or word_idx == len(chunk): # add when 95% of max width, or end
+                    final_chunk += subchunk + "\n"
+                    subchunk = ""
+                    cur_width = 0
+            if final_chunk[-1] == "\n": final_chunk = final_chunk[:-1] # remove last newline
+            
+            # finally create textclip and background
+            text = TextClip(final_chunk, fontsize=FONTSIZE, color="white", font="Verdana").set_start(total_duration).set_duration(duration - 0.5).set_position("center")
+            background = ColorClip((text.w + 20, text.h + 20), color=(27, 27, 27)).set_start(total_duration).set_duration(duration - 0.5).set_position("center")
 
             # update list and total duration
-            post_clips.append(text); post_audios.append(audio)
+            post_clips.append(background); post_clips.append(text); post_audios.append(audio)
             total_duration += duration - 0.5 # offset pause at audio end
 
         # background video
@@ -203,16 +236,14 @@ def generate_reddit_videos_PD(
         final_clip = crop(final_clip, x1=x1, y1=y1, x2=x2, y2=y2)
 
         # write output
-        try:
-            final_clip.write_videofile(
-                "output/" + filter_filename(post["title"]) + ".mp4",
-                temp_audiofile="output/temp-audio.mp3",
-                verbose=False, logger=None, fps=30, codec="libx264",
-                ffmpeg_params=["-vf", "format=yuv420p"],
-                threads=4,
-            )
-            print(f"[DEBUG]: DONE!")
-        except OSError: pass # winerror 6 thrown for no reason sometimes
+        final_clip.write_videofile(
+            "output/" + filter_filename(post["title"]) + ".mp4",
+            temp_audiofile="output/temp-audio.mp3",
+            verbose=False, logger=None, fps=30, codec="libx264",
+            ffmpeg_params=["-vf", "format=yuv420p"],
+            threads=2,
+        )
+        print(f"[DEBUG]: DONE!")
 
     return True
 

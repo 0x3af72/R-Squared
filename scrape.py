@@ -162,7 +162,7 @@ def get_posts_PTC(
 def get_posts_PD(
     subreddit,
     max_posts=5, # number of posts to scrape
-    CHUNKSIZE=50, # chunk up long descriptions by chunks of n words
+    CHUNKSIZE=75, # chunk up long descriptions by chunks of n words
     WAIT_TIMEOUT=20, ignore=[], logging=True,
 ):
     
