@@ -118,7 +118,7 @@ def generate_reddit_videos_PTC(
                     ffmpeg_params=["-vf", "format=yuv420p"],
                     threads=4,
                 )
-                print(f"[DEBUG][{vid_idx}]: DONE!")
+                PRINTS(f"[DEBUG][{vid_idx}]: DONE!")
             except OSError: pass # winerror 6 thrown for no reason sometimes
 
     return True
@@ -171,7 +171,7 @@ def generate_reddit_videos_PD(
         post_audios = [audio,]
 
         # create clips for description
-        print(f"[DEBUG]: Creating description video clips for post: {post['title']}")
+        PRINTS(f"[DEBUG]: Creating description video clips for post: {post['title']}")
         total_duration = duration
         for chunk, chunk_path in post["description_chunks"]:
 
@@ -242,7 +242,7 @@ def generate_reddit_videos_PD(
             ffmpeg_params=["-vf", "format=yuv420p"],
             threads=2,
         )
-        print(f"[DEBUG]: DONE!")
+        PRINTS(f"[DEBUG]: DONE!")
 
     return True
 
