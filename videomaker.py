@@ -152,7 +152,6 @@ def generate_reddit_videos_PD(
     for c in LEGAL_CHARS:
         text_clip = TextClip(c, fontsize=FONTSIZE, font="Verdana")
         char_dimensions[c] = (text_clip.w, text_clip.h)
-    print(char_dimensions)
 
     # call scrape
     PRINTS(f"[DEBUG][PD MODE]: Scraping subreddit: {subreddit} for up to {max_posts} posts")
@@ -256,6 +255,6 @@ if __name__ == "__main__":
     generate_reddit_videos_PD(
         subreddit="AmItheAsshole",
         bg_path="background/minecraft.mp4",
-        max_posts=1,
+        max_posts=3,
         logging=True
     )
