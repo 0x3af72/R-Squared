@@ -240,7 +240,7 @@ def generate_reddit_videos_PD(
             temp_audiofile="output/temp-audio.mp3",
             verbose=False, logger=None, fps=30, codec="libx264",
             ffmpeg_params=["-vf", "format=yuv420p"],
-            threads=2,
+            threads=4,
         )
         PRINTS(f"[DEBUG]: DONE!")
 
@@ -255,6 +255,12 @@ if __name__ == "__main__":
     generate_reddit_videos_PD(
         subreddit="AmItheAsshole",
         bg_path="background/minecraft.mp4",
-        max_posts=3,
+        max_posts=1,
+        logging=True
+    )
+    generate_reddit_videos_PTC(
+        subreddit="AskReddit",
+        bg_path="background/minecraft.mp4",
+        max_posts=1,
         logging=True
     )
