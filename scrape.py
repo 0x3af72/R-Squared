@@ -38,7 +38,7 @@ def to_ignore(element, ignore):
 
 # expand a term
 def expand_term(word):
-    return REDDIT_TERMS[word] if word.upper() in REDDIT_TERMS else word
+    return REDDIT_TERMS[word] if word in REDDIT_TERMS else word
 
 # filter out urls in string
 def filter_text(s):
