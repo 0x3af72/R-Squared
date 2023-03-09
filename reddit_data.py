@@ -9,6 +9,7 @@ DARKMODE_BUTTON_CLASS = "_2e2g485kpErHhJQUiyvvC2 _1asGWL2_XadHoBuUlNArOq _3kUvbp
 
 # terms for expanding
 REDDIT_TERMS = {
+    "AITA": "Am I The Asshole",
     "YTA": "You're The Asshole",
     "NTA": "Not The Asshole",
     "NAH": "No Assholes Here",
@@ -17,7 +18,7 @@ REDDIT_TERMS = {
     "TL;DR": "Too Long; Didn't Read",
     "TIL": "Today I Learned",
     "AMA": "Ask Me Anything",
-    "ELI5": "Explain Like I'm 5 (years old)",
+    "ELI5": "Explain Like I'm 5",
     "FTFY": "Fixed That For You",
     "IIRC": "If I Remember Correctly",
     "IMO": "In My Opinion",
