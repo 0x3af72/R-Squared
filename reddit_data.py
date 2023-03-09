@@ -29,4 +29,9 @@ REDDIT_TERMS = {
     "YMMV": "Your Mileage May Vary",
     "MRW": "My Reaction When",
     "AFAIK": "As Far As I Know",
+    "SIL": "Sister In Law",
+    "MIL": "Mother In Law",
+    "BIL": "Brother In Law",
+    "FIL": "Father In Law",
+    "SO": "Significant Other",
 }
