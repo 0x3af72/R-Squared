@@ -1,6 +1,7 @@
 import selenium
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyttsx3
@@ -11,21 +12,14 @@ import os
 import random
 import string
 import time
-from copy import copy
 
 import printswitch
 from printswitch import PRINTS
+from reddit_data import *
 
-# constants
-EXECUTABLE_PATH = "chromedriver.exe"
+# paths
+EXECUTABLE_PATH = "drivers/chromedriver.exe"
 BRAVE_PATH = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe" # have to install brave for this to work
-POST_ELEMENT_CLASS = "Post "
-POST_TEXT_CLASS = "SQnoC3ObvgnGjWt90zD9Z _2INHSNB8V5eaWp4P0rY_mE"
-POST_DESCRIPTION_CLASS = "_3xX726aBn29LDbsDtzr_6E _1Ap4F5maDtT1E1YuCiaO0r D3IL3FD0RFy_mkKLPwL4"
-COMMENT_ELEMENT_CLASS = "Comment "
-COMMENT_TEXT_CLASS = "_292iotee39Lmt0MkQZ2hPV RichTextJSON-root"
-DROPDOWN_BUTTON_CLASS = "_10K5i7NW6qcm-UoCtpB3aK _1pA8z73SZ1olP5KMKFN4_Z _18X7KoiaLuKbuLqg4zE8BH _22SL37yETIW414yUiZj27w"
-DARKMODE_BUTTON_CLASS = "_2e2g485kpErHhJQUiyvvC2 _1asGWL2_XadHoBuUlNArOq _3kUvbpMbR21zJBboDdBH7D"
 
 # pyttsx3 converter
 converter = pyttsx3.init()
@@ -42,12 +36,17 @@ def to_ignore(element, ignore):
         if text in element.text: return True
     return False
 
+# expand a term
+def expand_term(word):
+    return REDDIT_TERMS[word] if word.upper() in REDDIT_TERMS else word
+
 # filter out urls in string
-def filter_urls(s):
-    return " ".join(word if not validators.url(word) else "(url removed)" for word in re.split(f"[{string.whitespace}]", s))
+def filter_text(s):
+    return " ".join(expand_term(word) if not validators.url(word) else "(url removed)" for word in re.split(f"[{string.whitespace}]", s))
 
 # moving around the chromedriver file for neatness
 def move_chromedriver_file(out):
+    return
     os.rename(*["drivers/chromedriver.exe", "chromedriver.exe"][::-1 if not out else 1])
 
 # setup driver
@@ -57,13 +56,12 @@ def setup_driver(subreddit):
     move_chromedriver_file(True)
     options = webdriver.ChromeOptions()
     options.binary_location = BRAVE_PATH
-    options.executable_path = EXECUTABLE_PATH
     prefs = {"profile.default_content_setting_values.notifications": 2} # this disables the screen dimming thing
     options.add_experimental_option("prefs", prefs)
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_argument("--log-level=3")
     options.add_argument("--disable-logging")
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(service=Service(EXECUTABLE_PATH), options=options)
     driver.get(f"https://www.reddit.com/r/{subreddit}/top/?t=day")
     driver.maximize_window()
 
@@ -122,7 +120,7 @@ def get_posts_PTC(
             path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
             driver.execute_script('arguments[0].scrollIntoView({block: "center"});', element) # prevent cutting off
             element.screenshot(path + ".png")
-            save_tts(text_element.text, path + ".wav")
+            save_tts(filter_text(text_element.text), path + ".wav")
 
             # add the new element to posts
             new_element = {
@@ -170,7 +168,7 @@ def get_posts_PTC(
                     path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
                     driver.execute_script('arguments[0].scrollIntoView({block: "center"});', element) # prevent cutting off
                     element.screenshot(path + ".png")
-                    comment_text = filter_urls(text_element.text)
+                    comment_text = filter_text(text_element.text)
                     save_tts(comment_text, path + ".wav")
 
                     # update cur comments
@@ -242,7 +240,7 @@ def get_posts_PD(
             path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
             driver.execute_script('arguments[0].scrollIntoView({block: "center"});', element) # prevent cutting off
             element.screenshot(path + ".png")
-            save_tts(text_element.text, path + ".wav")
+            save_tts(filter_text(text_element.text), path + ".wav")
 
             posts_to_visit.append((text_element.text, text_element.get_attribute("href"), path))
 
@@ -267,7 +265,7 @@ def get_posts_PD(
             # chunking up + tts
             description_chunks = []
             while description_text:
-                chunk = filter_urls(" ".join(description_text[:CHUNKSIZE]))
+                chunk = filter_text(" ".join(description_text[:CHUNKSIZE]))
                 path = "screenshots/" + "".join(random.choice(string.ascii_letters + string.digits) for i in range(32))
                 save_tts(chunk, path + ".wav", False)
                 description_chunks.append((chunk, path))
@@ -295,7 +293,7 @@ if __name__ == "__main__":
     #     for comment in post["comments"]:
     #         PRINTS(len(comment))
     #         PRINTS("> " + comment[0][0])
-    posts = get_posts_PD("AmItheAsshole", max_posts=2)
+    posts = get_posts_PD("AmItheAsshole", max_posts=1)
     for post in posts:
         print(post["title"])
         print(post["description_chunks"])

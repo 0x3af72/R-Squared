@@ -103,6 +103,7 @@ def generate_reddit_videos_PTC(
             PRINTS(f"[DEBUG][{vid_idx}]: Generating final clip")
             final_audio = CompositeAudioClip(comment_audios)
             final_clip = CompositeVideoClip([background_video, *comment_clips]).set_audio(final_audio)
+            if total_duration > 59: final_clip = final_clip.subclip(0, 59)
 
             # crop final clip
             x1 = (final_clip.w - output_width) // 2; x2 = x1 + output_width
@@ -228,6 +229,7 @@ def generate_reddit_videos_PD(
         PRINTS(f"[DEBUG]: Generating final clip")
         final_audio = CompositeAudioClip(post_audios)
         final_clip = CompositeVideoClip([background_video, *post_clips]).set_audio(final_audio)
+        if total_duration > 59: final_clip = final_clip.subclip(0, 59)
 
         # crop final clip
         x1 = (final_clip.w - output_width) // 2; x2 = x1 + output_width
@@ -247,20 +249,14 @@ def generate_reddit_videos_PD(
     return True
 
 if __name__ == "__main__":
-    # generate_reddit_videos_PTC(
-    #     subreddit="AskReddit",
-    #     max_posts=5, max_comments=10, max_videos=3, bg_path="background/cake.mp4",
-    #     logging=True
-    # )
     generate_reddit_videos_PD(
         subreddit="AmItheAsshole",
         bg_path="background/minecraft.mp4",
-        max_posts=1,
+        max_posts=5,
         logging=True
     )
     generate_reddit_videos_PTC(
         subreddit="AskReddit",
-        bg_path="background/minecraft.mp4",
-        max_posts=1,
+        max_posts=5, max_comments=10, max_videos=3, bg_path="background/cake.mp4",
         logging=True
     )
