@@ -252,11 +252,11 @@ if __name__ == "__main__":
     generate_reddit_videos_PD(
         subreddit="AmItheAsshole",
         bg_path="background/minecraft.mp4",
-        max_posts=5,
+        max_posts=1,
         logging=True
     )
     generate_reddit_videos_PTC(
         subreddit="AskReddit",
-        max_posts=5, max_comments=10, max_videos=3, bg_path="background/cake.mp4",
+        max_posts=1, max_comments=10, max_videos=3, bg_path="background/minecraft.mp4",
         logging=True
     )
