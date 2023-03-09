@@ -8,9 +8,9 @@ Python libraries (pip install): `librosa`, `moviepy`, `selenium`, `pyttsx3`, `va
 
 FFMPEG: To install FFMPEG, type in the command `scoop install ffmpeg` in Windows Powershell.
 
-ImageMagick: Visit the ImageMagick website and scroll down to download the latest windows binary release. **When running the installer, select the option "install legacy utilities".** [(Link)](https://imagemagick.org/script/download.php).
+ImageMagick: Visit the ImageMagick website and scroll down to download the latest windows binary release. **When running the installer, select the option "install legacy utilities".** [(Install ImageMagick)](https://imagemagick.org/script/download.php)
 
-Brave Browser: It is recommended that you use Brave as the browser for selenium. If you do not wish to install Brave, you can modify `videomaker.py` accordingly. [Download Brave](https://brave.com/download/).
+(Optional) Brave Browser: It is recommended that you use Brave as the browser for selenium. If you do not wish to install Brave, you can modify `videomaker.py` accordingly. [(Install Brave)](https://brave.com/download/)
 
 ## How to use
 
