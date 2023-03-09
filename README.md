@@ -4,6 +4,8 @@ R Squared is a windows program to generate videos from reddit posts.
 
 ## Requirements
 
+**Background videos**: To create videos, you need to have background videos which are *over 60 seconds*, which you will link when calling functions from `videomaker.py`.
+
 **Python libraries** (pip install): `librosa`, `moviepy`, `selenium`, `pyttsx3`, `validators`
 
 **FFMPEG**: To install FFMPEG, type in the command `scoop install ffmpeg` in Windows Powershell.
