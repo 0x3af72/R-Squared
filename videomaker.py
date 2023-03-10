@@ -111,16 +111,14 @@ def generate_reddit_videos_PTC(
             final_clip = crop(final_clip, x1=x1, y1=y1, x2=x2, y2=y2)
 
             # write output
-            try:
-                final_clip.write_videofile(
-                    "output/" + f"({vid_idx + 1}) " + filter_filename(post["title"]) + ".mp4",
-                    temp_audiofile="output/temp-audio.mp3",
-                    verbose=False, logger=None, fps=30, codec="libx264",
-                    ffmpeg_params=["-vf", "format=yuv420p"],
-                    threads=4,
-                )
-                PRINTS(f"[DEBUG][{vid_idx}]: DONE!")
-            except OSError: pass # winerror 6 thrown for no reason sometimes
+            final_clip.write_videofile(
+                "output/" + f"({vid_idx + 1}) " + filter_filename(post["title"]) + ".mp4",
+                temp_audiofile="output/temp-audio.mp3",
+                verbose=False, logger=None, fps=30, codec="libx264",
+                ffmpeg_params=["-vf", "format=yuv420p"],
+                threads=4,
+            )
+            PRINTS(f"[DEBUG][{vid_idx}]: DONE!")
 
     return True
 
@@ -249,12 +247,12 @@ def generate_reddit_videos_PD(
     return True
 
 if __name__ == "__main__":
-    generate_reddit_videos_PD(
-        subreddit="AmItheAsshole",
-        bg_path="background/minecraft.mp4",
-        max_posts=1,
-        logging=True
-    )
+    # generate_reddit_videos_PD(
+    #     subreddit="AmItheAsshole",
+    #     bg_path="background/minecraft.mp4",
+    #     max_posts=1,
+    #     logging=True
+    # )
     generate_reddit_videos_PTC(
         subreddit="AskReddit",
         max_posts=1, max_comments=10, max_videos=3, bg_path="background/minecraft.mp4",

@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyttsx3
 import validators
+import win32api
 
 import re
 import os
@@ -55,9 +56,10 @@ def setup_driver(subreddit):
     options.add_experimental_option("excludeSwitches", ["enable-logging"])
     options.add_argument("--log-level=3")
     options.add_argument("--disable-logging")
+    options.add_argument(f"--window-size={win32api.GetSystemMetrics(0)}x{win32api.GetSystemMetrics(1)}")
+    options.add_argument("--headless")
     driver = webdriver.Chrome(service=Service(EXECUTABLE_PATH), options=options)
     driver.get(f"https://www.reddit.com/r/{subreddit}/top/?t=day")
-    driver.maximize_window()
 
     # dark mode
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, f"//button[@class='{DROPDOWN_BUTTON_CLASS}']"))).click()
