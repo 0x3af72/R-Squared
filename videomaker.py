@@ -19,7 +19,7 @@ def filter_filename(name, illegal="\\/:?\"<>|"):
 
 # post and comments video generator
 def generate_reddit_videos_PTC(
-    subreddit, bg_path, max_posts=5, max_comments=7, max_videos=1,
+    subreddit, bg_path, max_posts=5, max_comments=7, max_videos=1, VIDEO_LENGTH=60,
     output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
     
@@ -70,7 +70,7 @@ def generate_reddit_videos_PTC(
                 
                 # check if exceeds
                 duration = librosa.get_duration(filename=comment_path + ".wav")
-                if total_duration + duration < 59:
+                if total_duration + duration < VIDEO_LENGTH - 1:
                     # create clips
                     image = ImageClip(comment_path + ".png").set_start(total_duration).set_position("center").set_duration(duration)
                     image = resize(image, width=output_width, height=int(output_width / image.w * image.h))
@@ -81,7 +81,7 @@ def generate_reddit_videos_PTC(
                     total_duration += duration
 
                 else: # just add the comment to unused
-                    if duration < 59: # if comment is super long just skip
+                    if duration < VIDEO_LENGTH - 1: # if comment is super long just skip
                         new_unused.append((text, comment_path))
 
             # background video
@@ -103,7 +103,7 @@ def generate_reddit_videos_PTC(
             PRINTS(f"[DEBUG][{vid_idx}]: Generating final clip")
             final_audio = CompositeAudioClip(comment_audios)
             final_clip = CompositeVideoClip([background_video, *comment_clips]).set_audio(final_audio)
-            if total_duration > 59: final_clip = final_clip.subclip(0, 59)
+            if total_duration > VIDEO_LENGTH - 1: final_clip = final_clip.subclip(0, VIDEO_LENGTH - 1)
 
             # crop final clip
             x1 = (final_clip.w - output_width) // 2; x2 = x1 + output_width
@@ -126,7 +126,7 @@ def generate_reddit_videos_PTC(
 
 # post and description video generator
 def generate_reddit_videos_PD(
-    subreddit, bg_path, max_posts=5, FONTSIZE=20,
+    subreddit, bg_path, max_posts=5, FONTSIZE=20, VIDEO_LENGTH=60,
     output_width=786, output_height=1400, clear_screenshot_folder=True, logging=True, **kwargs,
 ):
     
@@ -177,7 +177,7 @@ def generate_reddit_videos_PD(
         for chunk, chunk_path in post["description_chunks"]:
 
             # stop when length exceeds already, this might cut off some part of the final video
-            if total_duration > 59: break
+            if total_duration > VIDEO_LENGTH - 1: break
 
             # audio and duration
             duration = librosa.get_duration(filename=chunk_path + ".wav")
@@ -229,7 +229,7 @@ def generate_reddit_videos_PD(
         PRINTS(f"[DEBUG]: Generating final clip")
         final_audio = CompositeAudioClip(post_audios)
         final_clip = CompositeVideoClip([background_video, *post_clips]).set_audio(final_audio)
-        if total_duration > 59: final_clip = final_clip.subclip(0, 59)
+        if total_duration > VIDEO_LENGTH - 1: final_clip = final_clip.subclip(0, VIDEO_LENGTH - 1)
 
         # crop final clip
         x1 = (final_clip.w - output_width) // 2; x2 = x1 + output_width
