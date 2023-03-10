@@ -139,7 +139,8 @@ def get_posts_PTC(
             comment_elems = [
                 element for element in
                 driver.find_elements(By.CSS_SELECTOR, f"[class^='{COMMENT_ELEMENT_CLASS}']")
-                if "level 1" in element.text # only get main posts
+                if "level 1" in element.text # only get level 1 posts
+                and not "I am a bot, and this action was performed automatically." in element.text # filter out bot posts
             ]
             if time.time() - start_time >= WAIT_TIMEOUT: break
 
