@@ -19,3 +19,9 @@ R Squared is a windows program to generate videos from reddit posts.
 To use R Squared as a library, you just have to `import videomaker.py`.
 
 If you wish to use the builtin UI provided to you, you can run `ui.py`.
+
+## Videomaker functions
+
+`videomaker.generate_reddit_videos_PTC`: Reads title and comments from top posts in subreddit.
+
+`videomaker.generate_reddit_videos_PD`: Reads title and description from top posts in subreddit.
