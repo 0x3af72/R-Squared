@@ -1,5 +1,4 @@
 import videomaker
-import scrape
 
 subreddits_PTC = ["AskReddit", "ExplainLikeImFive", "TodayILearned"]
 subreddits_PD = ["AmItheAsshole", "entitledparents"]
